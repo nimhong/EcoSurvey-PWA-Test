@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>EcoSurvey 野外调查记录器</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#16535A">
+</head>
+
+
+<body>
+
+<div class="container">
+
+
+    <!-- ================================= -->
+    <!-- 页面标题 -->
+    <!-- ================================= -->
+
+    <header class="page-header">
+
+        <h1>EcoSurvey</h1>
+
+        <p>
+            野外动物调查记录器 · V1
+        </p>
+
+    </header>
+
+
+    <!-- ================================= -->
+    <!-- 当前样线 -->
+    <!-- ================================= -->
+
+    <section class="card">
+
+        <div class="section-title">
+            当前样线
+        </div>
+
+
+        <div
+            id="currentTransect"
+            class="current-transect"
+        >
+            暂无当前样线
+        </div>
+
+
+        <div class="button-row current-transect-actions">
+
+            <button
+                id="eventManagementBtn"
+                class="btn btn-secondary"
+            >
+                事件管理
+            </button>
+
+        </div>
+
+        <div class="button-row">
+
+            <button
+                id="newTransectBtn"
+                class="btn btn-primary"
+            >
+                新建样线
+            </button>
+
+            <button
+                id="transectManagementBtn"
+                class="btn btn-secondary"
+            >
+                样线管理
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================= -->
+    <!-- 新建样线 -->
+    <!-- ================================= -->
+
+    <section
+        id="transectFormSection"
+        class="card hidden"
+    >
+
+        <div class="section-title">
+            新建样线
+        </div>
+
+
+        <!-- 样线编号 -->
+
+        <div class="form-group">
+
+            <label for="transectId">
+
+                样线编号
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <input
+                type="text"
+                id="transectId"
+                placeholder="例如：20261003_BT01"
+            >
+
+        </div>
+
+
+        <!-- 观测者 -->
+
+        <div class="form-group">
+
+            <label for="observer">
+
+                观测者
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <input
+                type="text"
+                id="observer"
+            >
+
+        </div>
+
+
+        <!-- 鉴定者 -->
+
+        <div class="form-group">
+
+            <label for="identifier">
+
+                鉴定者
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <input
+                type="text"
+                id="identifier"
+            >
+
+        </div>
+
+
+        <!-- 记录者 -->
+
+        <div class="form-group">
+
+            <label for="recorder">
+
+                记录者
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <input
+                type="text"
+                id="recorder"
+            >
+
+        </div>
+
+
+        <!-- 天气 -->
+
+        <div class="form-group">
+
+            <label for="weather">
+
+                天气
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <select id="weather">
+
+                <option value="">
+                    请选择
+                </option>
+
+                <option value="晴">
+                    晴
+                </option>
+
+                <option value="阴">
+                    阴
+                </option>
+
+                <option value="多云">
+                    多云
+                </option>
+
+                <option value="小雨">
+                    小雨
+                </option>
+
+                <option value="中雨">
+                    中雨
+                </option>
+
+                <option value="大雨">
+                    大雨
+                </option>
+
+                <option value="雪">
+                    雪
+                </option>
+
+                <option value="雾">
+                    雾
+                </option>
+
+                <option value="其他">
+                    其他
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- 温度 -->
+
+        <div class="form-group">
+
+            <label for="temperature">
+
+                温度
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <input
+                type="text"
+                id="temperature"
+                placeholder="例如：18"
+            >
+
+        </div>
+
+
+        <!-- 水温 -->
+
+        <div class="form-group">
+
+            <label for="waterTemperature">
+                水温
+            </label>
+
+
+            <input
+                type="text"
+                id="waterTemperature"
+                placeholder="选填"
+            >
+
+        </div>
+
+
+        <!-- 湿度 -->
+
+        <div class="form-group">
+
+            <label for="humidity">
+                湿度
+            </label>
+
+
+            <input
+                type="text"
+                id="humidity"
+                placeholder="选填"
+            >
+
+        </div>
+
+
+        <!-- pH -->
+
+        <div class="form-group">
+
+            <label for="ph">
+                pH值
+            </label>
+
+
+            <input
+                type="text"
+                id="ph"
+                placeholder="选填"
+            >
+
+        </div>
+
+
+        <!-- 主要生境 -->
+
+        <div class="form-group">
+
+            <label for="mainHabitat">
+
+                主要生境
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <select id="mainHabitat">
+
+                <option value="">
+                    请选择
+                </option>
+
+                <option value="针叶林">
+                    针叶林
+                </option>
+
+                <option value="针阔混交林">
+                    针阔混交林
+                </option>
+
+                <option value="落叶阔叶林">
+                    落叶阔叶林
+                </option>
+
+                <option value="常绿阔叶林">
+                    常绿阔叶林
+                </option>
+
+                <option value="灌丛">
+                    灌丛
+                </option>
+
+                <option value="草地">
+                    草地
+                </option>
+
+                <option value="草坡">
+                    草坡
+                </option>
+
+                <option value="农田">
+                    农田
+                </option>
+
+                <option value="果园">
+                    果园
+                </option>
+
+                <option value="河流">
+                    河流
+                </option>
+
+                <option value="湖泊">
+                    湖泊
+                </option>
+
+                <option value="湿地/沼泽">
+                    湿地/沼泽
+                </option>
+
+                <option value="裸地">
+                    裸地
+                </option>
+
+                <option value="裸岩">
+                    裸岩
+                </option>
+
+                <option value="居民区">
+                    居民区
+                </option>
+
+                <option value="其他">
+                    其他
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- 人为干扰类型 -->
+
+        <div class="form-group">
+
+            <label for="disturbanceType">
+
+                人为干扰类型
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <select id="disturbanceType">
+
+                <option value="">
+                    请选择
+                </option>
+
+                <option value="道路">
+                    道路
+                </option>
+
+                <option value="建筑">
+                    建筑
+                </option>
+
+                <option value="农业活动">
+                    农业活动
+                </option>
+
+                <option value="放牧">
+                    放牧
+                </option>
+
+                <option value="采集">
+                    采集
+                </option>
+
+                <option value="旅游活动">
+                    旅游活动
+                </option>
+
+                <option value="施工">
+                    施工
+                </option>
+
+                <option value="其他">
+                    其他
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- 人为干扰程度 -->
+
+        <div class="form-group">
+
+            <label for="disturbanceLevel">
+
+                人为干扰程度
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <select id="disturbanceLevel">
+
+                <option value="">
+                    请选择
+                </option>
+
+                <option value="无">
+                    无
+                </option>
+
+                <option value="轻">
+                    轻
+                </option>
+
+                <option value="中">
+                    中
+                </option>
+
+                <option value="重">
+                    重
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- 样线备注 -->
+
+        <div class="form-group">
+
+            <label for="transectRemark">
+                样线备注
+            </label>
+
+
+            <textarea
+                id="transectRemark"
+                rows="3"
+                placeholder="选填"
+            ></textarea>
+
+        </div>
+
+
+        <!-- 按钮 -->
+
+        <div class="button-row">
+
+            <button
+                id="saveTransectBtn"
+                class="btn btn-primary"
+            >
+                保存样线
+            </button>
+
+
+            <button
+                id="cancelTransectBtn"
+                class="btn btn-secondary"
+            >
+                取消
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================================= -->
+    <!-- 调查事件 -->
+    <!-- ================================= -->
+
+    <section
+        id="eventSection"
+        class="card hidden"
+    >
+
+        <div class="section-title">
+            调查事件
+        </div>
+
+
+        <button
+            id="newEventBtn"
+            class="btn btn-primary"
+        >
+            新建调查事件
+        </button>
+
+    </section>
+
+
+    <!-- ================================= -->
+    <!-- 新建调查事件 -->
+    <!-- ================================= -->
+
+    <section
+        id="eventFormSection"
+        class="card hidden"
+    >
+
+        <div class="section-title">
+            新建调查事件
+        </div>
+
+
+        <!-- 调查对象 -->
+
+        <div class="form-group">
+
+            <label for="subject">
+
+                调查对象
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <input
+                type="text"
+                id="subject"
+                placeholder="例如：赤狐、鸟类、蛙类、粪便等"
+            >
+
+        </div>
+
+
+        <!-- 个体总数 -->
+
+        <div class="form-group">
+
+            <label for="totalCount">
+
+                个体总数
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <input
+                type="text"
+                id="totalCount"
+                placeholder="请输入调查记录中的总数"
+            >
+
+        </div>
+
+
+        <!-- 截距 -->
+
+        <div class="form-group">
+
+            <label for="distance">
+
+                截距
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <div class="input-with-unit">
+
+                <input
+                    type="text"
+                    id="distance"
+                    placeholder="请输入"
+                >
+
+                <span>
+                    m
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- 局部生境 -->
+
+        <div class="form-group">
+
+            <label for="localHabitat">
+
+                局部生境
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <select id="localHabitat">
+
+                <option value="">
+                    请选择
+                </option>
+
+                <option value="针叶林">
+                    针叶林
+                </option>
+
+                <option value="针阔混交林">
+                    针阔混交林
+                </option>
+
+                <option value="落叶阔叶林">
+                    落叶阔叶林
+                </option>
+
+                <option value="常绿阔叶林">
+                    常绿阔叶林
+                </option>
+
+                <option value="灌丛">
+                    灌丛
+                </option>
+
+                <option value="草地">
+                    草地
+                </option>
+
+                <option value="草坡">
+                    草坡
+                </option>
+
+                <option value="农田">
+                    农田
+                </option>
+
+                <option value="果园">
+                    果园
+                </option>
+
+                <option value="河流">
+                    河流
+                </option>
+
+                <option value="湖泊">
+                    湖泊
+                </option>
+
+                <option value="湿地/沼泽">
+                    湿地/沼泽
+                </option>
+
+                <option value="裸地">
+                    裸地
+                </option>
+
+                <option value="裸岩">
+                    裸岩
+                </option>
+
+                <option value="居民区">
+                    居民区
+                </option>
+
+                <option value="其他">
+                    其他
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- ================================= -->
+        <!-- 行为 -->
+        <!-- ================================= -->
+
+        <div class="form-group">
+
+            <label>
+
+                行为
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <div class="checkbox-grid">
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="移动"
+                    >
+
+                    <span>
+                        移动
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="休息"
+                    >
+
+                    <span>
+                        休息
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="觅食"
+                    >
+
+                    <span>
+                        觅食
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="饮水"
+                    >
+
+                    <span>
+                        饮水
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="发声"
+                    >
+
+                    <span>
+                        发声
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="社交"
+                    >
+
+                    <span>
+                        社交
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="争斗"
+                    >
+
+                    <span>
+                        争斗
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="晒背"
+                    >
+
+                    <span>
+                        晒背
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="警戒"
+                    >
+
+                    <span>
+                        警戒
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="逃逸"
+                    >
+
+                    <span>
+                        逃逸
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="繁殖"
+                    >
+
+                    <span>
+                        繁殖
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="筑巢/筑穴"
+                    >
+
+                    <span>
+                        筑巢/筑穴
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="其他"
+                    >
+
+                    <span>
+                        其他
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="behavior"
+                        value="不适用"
+                    >
+
+                    <span>
+                        不适用
+                    </span>
+
+                </label>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================= -->
+        <!-- 证据类型 -->
+        <!-- ================================= -->
+
+        <div class="form-group">
+
+            <label>
+
+                证据类型
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <div class="checkbox-grid">
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="evidence"
+                        value="目击"
+                    >
+
+                    <span>
+                        目击
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="evidence"
+                        value="声音"
+                    >
+
+                    <span>
+                        声音
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="evidence"
+                        value="足迹/爪痕"
+                    >
+
+                    <span>
+                        足迹/爪痕
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="evidence"
+                        value="粪便"
+                    >
+
+                    <span>
+                        粪便
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="evidence"
+                        value="羽毛等脱落物"
+                    >
+
+                    <span>
+                        羽毛等脱落物
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="evidence"
+                        value="取食痕迹"
+                    >
+
+                    <span>
+                        取食痕迹
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="evidence"
+                        value="巢穴"
+                    >
+
+                    <span>
+                        巢穴
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="evidence"
+                        value="尸体残骸"
+                    >
+
+                    <span>
+                        尸体残骸
+                    </span>
+
+                </label>
+
+
+                <label class="checkbox-item">
+
+                    <input
+                        type="checkbox"
+                        name="evidence"
+                        value="其他"
+                    >
+
+                    <span>
+                        其他
+                    </span>
+
+                </label>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================= -->
+        <!-- 鉴定状态 -->
+        <!-- ================================= -->
+
+        <div class="form-group">
+
+            <label>
+
+                鉴定状态
+
+                <span class="required">*</span>
+
+            </label>
+
+
+            <div class="radio-group">
+
+
+                <label class="radio-item">
+
+                    <input
+                        type="radio"
+                        name="identificationStatus"
+                        value="已确认"
+                    >
+
+                    <span>
+                        已确认
+                    </span>
+
+                </label>
+
+
+                <label class="radio-item">
+
+                    <input
+                        type="radio"
+                        name="identificationStatus"
+                        value="疑似"
+                    >
+
+                    <span>
+                        疑似
+                    </span>
+
+                </label>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ================================= -->
+        <!-- 更多信息 -->
+        <!-- ================================= -->
+
+        <details class="more-info">
+
+            <summary>
+                更多信息（选填）
+            </summary>
+
+
+            <div class="form-group">
+
+                <label for="female">
+                    雌
+                </label>
+
+                <input
+                    type="number"
+                    id="female"
+                    min="0"
+                    placeholder="选填"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="male">
+                    雄
+                </label>
+
+                <input
+                    type="number"
+                    id="male"
+                    min="0"
+                    placeholder="选填"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="juvenile">
+                    幼体
+                </label>
+
+                <input
+                    type="number"
+                    id="juvenile"
+                    min="0"
+                    placeholder="选填"
+                >
+
+            </div>
+
+
+            <div class="subsection-title">
+                两栖类扩展信息
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="adult">
+                    成体
+                </label>
+
+                <input
+                    type="number"
+                    id="adult"
+                    min="0"
+                    placeholder="选填"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="subadult">
+                    亚成体
+                </label>
+
+                <input
+                    type="number"
+                    id="subadult"
+                    min="0"
+                    placeholder="选填"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="tadpole">
+                    蝌蚪
+                </label>
+
+                <input
+                    type="number"
+                    id="tadpole"
+                    min="0"
+                    placeholder="选填"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="eggMass">
+                    卵块数量
+                </label>
+
+                <input
+                    type="number"
+                    id="eggMass"
+                    min="0"
+                    placeholder="选填"
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="eventRemark">
+                    备注
+                </label>
+
+                <textarea
+                    id="eventRemark"
+                    rows="3"
+                    placeholder="选填"
+                ></textarea>
+
+            </div>
+
+        </details>
+
+
+        <!-- ================================= -->
+        <!-- 按钮 -->
+        <!-- ================================= -->
+
+        <div class="button-row">
+
+            <button
+                id="saveEventBtn"
+                class="btn btn-primary"
+            >
+                保存并复制
+            </button>
+
+
+            <button
+                id="cancelEventBtn"
+                class="btn btn-secondary"
+            >
+                取消
+            </button>
+
+        </div>
+
+
+        <div
+            id="eventMessage"
+            class="message"
+        ></div>
+
+    </section>
+
+
+    <!-- ================================= -->
+    <!-- 最近调查事件 -->
+    <!-- ================================= -->
+
+    <section
+        id="recentEventsSection"
+        class="card hidden"
+    >
+
+        <div class="section-title">
+            最近调查事件
+        </div>
+
+
+        <div
+            id="recentEvents"
+            class="event-list"
+        ></div>
+
+    </section>
+
+
+    <!-- ================================= -->
+    <!-- 样线管理 -->
+    <!-- ================================= -->
+
+    <section
+        id="transectManagementSection"
+        class="card hidden"
+    >
+
+        <div class="section-title">
+            样线管理
+        </div>
+
+        <div class="management-note">
+            管理全部样线。已删除样线不可直接修改或作为当前样线；如需修改，请先恢复。
+        </div>
+
+        <div
+            id="transectManagementList"
+            class="management-list"
+        ></div>
+
+        <div class="button-row">
+            <button
+                id="closeTransectManagementBtn"
+                class="btn btn-secondary"
+            >
+                关闭管理
+            </button>
+        </div>
+
+    </section>
+
+
+    <!-- ================================= -->
+    <!-- 查看样线 -->
+    <!-- ================================= -->
+
+    <div
+        id="viewModal"
+        class="modal hidden"
+    >
+        <div class="modal-backdrop" onclick="closeViewModal()"></div>
+        <div class="modal-panel">
+            <div class="modal-header">
+                <div id="viewModalTitle" class="modal-title">样线详情</div>
+                <button id="closeViewModalBtn" class="modal-close">×</button>
+            </div>
+            <div id="viewModalBody" class="modal-body"></div>
+        </div>
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- 数据状态 -->
+    <!-- ================================= -->
+
+    <section class="card">
+
+        <div class="section-title">
+            数据状态
+        </div>
+
+
+        <div
+            id="dataStatus"
+            class="data-status"
+        >
+            正在加载……
+        </div>
+
+    </section>
+
+
+</div>
+
+
+<script src="app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+          .catch(err => console.warn('Service Worker 注册失败:', err));
+      });
+    }
+  </script>
+</body>
+
+</html>

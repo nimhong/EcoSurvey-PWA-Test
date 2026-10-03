@@ -1,0 +1,873 @@
+/* ========================================
+   EcoSurvey V1
+   野外动物调查记录器
+   ======================================== */
+
+
+/* ========================================
+   基础
+   ======================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    margin: 0;
+
+    padding: 0;
+
+    background: #f3f6f9;
+
+    color: #24364b;
+
+    font-family:
+        "Microsoft YaHei",
+        "Noto Sans SC",
+        Arial,
+        sans-serif;
+
+    line-height: 1.6;
+}
+
+
+/* ========================================
+   页面容器
+   ======================================== */
+
+.container {
+
+    width: 100%;
+
+    max-width: 760px;
+
+    margin: 0 auto;
+
+    padding: 20px 16px 60px;
+}
+
+
+/* ========================================
+   页面标题
+   ======================================== */
+
+.page-header {
+
+    padding: 10px 4px 20px;
+
+    text-align: center;
+}
+
+
+.page-header h1 {
+
+    margin: 0;
+
+    font-size: 28px;
+
+    font-weight: 700;
+
+    color: #244c6b;
+}
+
+
+.page-header p {
+
+    margin: 4px 0 0;
+
+    color: #6c7f91;
+
+    font-size: 14px;
+}
+
+
+/* ========================================
+   卡片
+   ======================================== */
+
+.card {
+
+    margin-bottom: 16px;
+
+    padding: 18px;
+
+    background: #ffffff;
+
+    border: 1px solid #dce4ec;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 2px 8px rgba(36, 76, 107, 0.05);
+}
+
+
+.hidden {
+
+    display: none !important;
+}
+
+
+/* ========================================
+   区域标题
+   ======================================== */
+
+.section-title {
+
+    margin-bottom: 16px;
+
+    padding-bottom: 10px;
+
+    border-bottom: 1px solid #e7edf2;
+
+    color: #244c6b;
+
+    font-size: 18px;
+
+    font-weight: 700;
+}
+
+
+/* ========================================
+   当前样线
+   ======================================== */
+
+.current-transect {
+
+    margin-bottom: 14px;
+
+    padding: 12px 14px;
+
+    background: #eef5fa;
+
+    border-radius: 8px;
+
+    color: #244c6b;
+
+    font-size: 15px;
+
+    font-weight: 600;
+}
+
+
+/* ========================================
+   表单
+   ======================================== */
+
+.form-group {
+
+    margin-bottom: 16px;
+}
+
+
+.form-group > label {
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #34495e;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+.required {
+
+    color: #d97706;
+}
+
+
+/* ========================================
+   输入框
+   ======================================== */
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+
+    width: 100%;
+
+    padding: 10px 12px;
+
+    border: 1px solid #cbd6df;
+
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    color: #24364b;
+
+    font-family: inherit;
+
+    font-size: 15px;
+
+    outline: none;
+
+    transition:
+        border-color 0.15s,
+        box-shadow 0.15s;
+}
+
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+
+    border-color: #669fcc;
+
+    box-shadow:
+        0 0 0 3px rgba(102, 159, 204, 0.12);
+}
+
+
+textarea {
+
+    resize: vertical;
+
+    min-height: 80px;
+}
+
+
+/* ========================================
+   单位输入
+   ======================================== */
+
+.input-with-unit {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.input-with-unit input {
+
+    flex: 1;
+}
+
+
+.input-with-unit span {
+
+    color: #68798a;
+
+    font-size: 14px;
+
+    white-space: nowrap;
+}
+
+
+/* ========================================
+   复选框
+   ======================================== */
+
+.checkbox-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 8px;
+}
+
+
+.checkbox-item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    min-height: 42px;
+
+    padding: 8px 10px;
+
+    border: 1px solid #dce4eb;
+
+    border-radius: 7px;
+
+    background: #fafcfd;
+
+    color: #34495e;
+
+    cursor: pointer;
+
+    font-size: 14px;
+}
+
+
+.checkbox-item:hover {
+
+    background: #f2f7fa;
+}
+
+
+.checkbox-item input {
+
+    width: 17px;
+
+    height: 17px;
+
+    margin: 0;
+
+    flex-shrink: 0;
+}
+
+
+/* ========================================
+   单选框
+   ======================================== */
+
+.radio-group {
+
+    display: flex;
+
+    gap: 10px;
+
+    flex-wrap: wrap;
+}
+
+
+.radio-item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    min-height: 42px;
+
+    padding: 8px 14px;
+
+    border: 1px solid #dce4eb;
+
+    border-radius: 7px;
+
+    background: #fafcfd;
+
+    cursor: pointer;
+}
+
+
+.radio-item input {
+
+    width: 17px;
+
+    height: 17px;
+
+    margin: 0;
+}
+
+
+/* ========================================
+   更多信息
+   ======================================== */
+
+.more-info {
+
+    margin-top: 8px;
+
+    padding-top: 4px;
+}
+
+
+.more-info summary {
+
+    padding: 10px 0;
+
+    color: #2a5f9e;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    user-select: none;
+}
+
+
+.subsection-title {
+
+    margin:
+        12px 0
+        10px;
+
+    padding-bottom: 6px;
+
+    border-bottom: 1px solid #edf1f4;
+
+    color: #587187;
+
+    font-size: 14px;
+
+    font-weight: 600;
+}
+
+
+/* ========================================
+   按钮
+   ======================================== */
+
+.button-row {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 20px;
+}
+
+
+.btn {
+
+    min-height: 44px;
+
+    padding: 9px 18px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    font-family: inherit;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        opacity 0.15s,
+        transform 0.05s;
+}
+
+
+.btn:active {
+
+    transform: translateY(1px);
+}
+
+
+.btn:hover {
+
+    opacity: 0.9;
+}
+
+
+.btn-primary {
+
+    background: #2a5f9e;
+
+    color: #ffffff;
+}
+
+
+.btn-secondary {
+
+    background: #e8edf2;
+
+    color: #43586b;
+}
+
+
+/* ========================================
+   消息
+   ======================================== */
+
+.message {
+
+    min-height: 24px;
+
+    margin-top: 12px;
+
+    color: #2f6f4e;
+
+    font-size: 14px;
+}
+
+
+/* ========================================
+   最近事件
+   ======================================== */
+
+.event-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+.event-item {
+
+    padding: 12px;
+
+    border: 1px solid #dce4eb;
+
+    border-radius: 8px;
+
+    background: #fafcfd;
+}
+
+
+.event-id {
+
+    margin-bottom: 4px;
+
+    color: #2a5f9e;
+
+    font-size: 13px;
+
+    font-weight: 700;
+}
+
+
+.event-main {
+
+    color: #34495e;
+
+    font-size: 14px;
+}
+
+
+.event-detail {
+
+    margin-top: 4px;
+
+    color: #6d7d8c;
+
+    font-size: 13px;
+}
+
+
+/* ========================================
+   数据状态
+   ======================================== */
+
+.data-status {
+
+    color: #68798a;
+
+    font-size: 13px;
+
+    line-height: 1.8;
+}
+
+
+/* ========================================
+   手机适配
+   ======================================== */
+
+@media (max-width: 600px) {
+
+    .container {
+
+        padding:
+            12px
+            10px
+            40px;
+    }
+
+
+    .card {
+
+        padding: 15px;
+
+        border-radius: 10px;
+    }
+
+
+    .page-header h1 {
+
+        font-size: 24px;
+    }
+
+
+    .checkbox-grid {
+
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .button-row {
+
+        flex-direction: column;
+    }
+
+
+    .btn {
+
+        width: 100%;
+    }
+}
+
+/* ========================================
+   样线管理 / 生命周期管理
+   ======================================== */
+
+.management-note {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    background: #f7f9fb;
+    border-left: 3px solid #669fcc;
+    color: #68798a;
+    font-size: 13px;
+}
+
+.management-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.management-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 1px solid #dce4eb;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.management-item.is-deleted {
+    background: #fafafa;
+    border-color: #e1e1e1;
+}
+
+.management-main {
+    min-width: 0;
+}
+
+.management-title {
+    color: #244c6b;
+    font-size: 15px;
+    font-weight: 700;
+    word-break: break-all;
+}
+
+.management-meta {
+    margin-top: 4px;
+    color: #68798a;
+    font-size: 13px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-active {
+    background: #edf6f0;
+    color: #2f6b4a;
+}
+
+.status-deleted {
+    background: #f2f2f2;
+    color: #777777;
+}
+
+.management-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.btn-small {
+    padding: 7px 10px;
+    font-size: 13px;
+}
+
+.btn-danger {
+    background: #fff5f5;
+    border: 1px solid #e5b8b8;
+    color: #a33a3a;
+}
+
+.btn-danger:hover {
+    background: #fdeaea;
+}
+
+.permanent-action {
+    border-color: #c98c8c;
+    color: #8d2020;
+    font-weight: 700;
+}
+
+.current-transect-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.empty-state {
+    padding: 20px;
+    text-align: center;
+    color: #7b8996;
+    border: 1px dashed #d4dde5;
+    border-radius: 8px;
+}
+
+/* 查看详情弹窗 */
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 35, 50, 0.42);
+}
+
+.modal-panel {
+    position: relative;
+    z-index: 1;
+    width: min(680px, 100%);
+    max-height: 85vh;
+    overflow: auto;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 12px 40px rgba(20, 35, 50, 0.18);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid #e7edf2;
+}
+
+.modal-title {
+    color: #244c6b;
+    font-weight: 700;
+}
+
+.modal-close {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #68798a;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.modal-body {
+    padding: 18px;
+}
+
+.detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.detail-list > div {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid #edf1f4;
+    word-break: break-word;
+}
+
+.detail-list > div > span {
+    color: #68798a;
+    font-weight: 600;
+}
+
+@media (max-width: 640px) {
+    .management-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .management-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .detail-list > div {
+        grid-template-columns: 90px 1fr;
+    }
+}
+
+
+.modal-subtitle {
+    margin: 20px 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e7edf2;
+    color: #244c6b;
+    font-weight: 700;
+}
+
+.event-management-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.event-management-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid #e1e8ee;
+    border-radius: 7px;
+    background: #fafcfd;
+}
+
+.event-management-item.is-deleted {
+    opacity: 0.72;
+}
+
+.event-management-meta {
+    margin-top: 3px;
+    color: #7b8996;
+    font-size: 12px;
+}
+
+@media (max-width: 640px) {
+    .event-management-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
