@@ -17,8 +17,12 @@
         href="style.css"
     >
 
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#16535A">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#16535A">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
 </head>
 
 
@@ -1451,6 +1455,91 @@
 
 
     <!-- ================================= -->
+    <!-- 野生动物搜救 -->
+    <!-- ================================= -->
+
+    <section class="card">
+        <div class="section-title">野生动物搜救</div>
+        <div class="management-note">搜救作业与样线调查独立管理。搜救作业编号由系统自动生成，搜救事件按作业独立编号。</div>
+        <div class="button-row">
+            <button id="newRescueOperationBtn" class="btn btn-primary">新建搜救作业</button>
+            <button id="rescueManagementBtn" class="btn btn-secondary">搜救作业管理</button>
+        </div>
+    </section>
+
+    <section id="rescueOperationFormSection" class="card hidden">
+        <div class="section-title">新建搜救作业</div>
+        <div class="form-group"><label for="rescuePersonnel">搜救人员 <span class="required">*</span></label><input id="rescuePersonnel" type="text"></div>
+        <div class="form-group"><label for="rescueArea">搜救区域 <span class="required">*</span></label><input id="rescueArea" type="text"></div>
+        <div class="form-group"><label for="rescueTransectId">样线编号 <span class="required">*</span></label><input id="rescueTransectId" type="text"></div>
+        <div class="form-group"><label for="rescueWeather">天气 <span class="required">*</span></label>
+            <select id="rescueWeather"><option value="">请选择</option><option>晴</option><option>阴</option><option>多云</option><option>小雨</option><option>中雨</option><option>大雨</option><option>雪</option><option>雾</option><option>其他</option></select>
+        </div>
+        <div class="form-group"><label for="rescueTemperature">温度 <span class="required">*</span></label><input id="rescueTemperature" type="text"></div>
+        <div class="form-group"><label for="rescueMainHabitat">主要生境类型 <span class="required">*</span></label>
+            <select id="rescueMainHabitat"></select>
+        </div>
+        <div class="form-group"><label for="rescueDisturbanceType">人为干扰类型 <span class="required">*</span></label>
+            <select id="rescueDisturbanceType"><option value="">请选择</option><option>道路</option><option>建筑</option><option>农业活动</option><option>放牧</option><option>采集</option><option>旅游活动</option><option>施工</option><option>其他</option></select>
+        </div>
+        <div class="form-group"><label for="rescueDisturbanceLevel">人为干扰强度 <span class="required">*</span></label>
+            <select id="rescueDisturbanceLevel"><option value="">请选择</option><option>无</option><option>轻</option><option>中</option><option>重</option></select>
+        </div>
+        <div class="form-group"><label for="rescueOperationRemark">备注</label><textarea id="rescueOperationRemark" rows="3"></textarea></div>
+        <div class="button-row"><button id="saveRescueOperationBtn" class="btn btn-primary">保存搜救作业</button><button id="cancelRescueOperationBtn" class="btn btn-secondary">取消</button></div>
+        <div id="rescueOperationMessage" class="message"></div>
+    </section>
+
+    <section id="rescueOperationDetailSection" class="card hidden">
+        <div class="section-title" id="rescueOperationDetailTitle">搜救作业</div>
+        <div id="rescueOperationDetailBody" class="detail-list"></div>
+        <div class="section-title rescue-subtitle">搜救事件</div>
+        <div id="rescueEventList" class="event-list"></div>
+        <div class="button-row">
+            <button id="newRescueEventBtn" class="btn btn-primary">新增搜救事件</button>
+            <button id="editRescueOperationBtn" class="btn btn-secondary">修改作业</button>
+            <button id="completeRescueOperationBtn" class="btn btn-secondary">完成搜救作业</button>
+            <button id="closeRescueDetailBtn" class="btn btn-secondary">关闭</button>
+        </div>
+    </section>
+
+    <section id="rescueEventFormSection" class="card hidden">
+        <div class="section-title">新增搜救事件</div>
+        <div class="form-group"><label for="rescueObject">搜救对象 <span class="required">*</span></label><input id="rescueObject" type="text"></div>
+        <div class="form-group"><label for="rescueQuantity">数量 <span class="required">*</span></label><input id="rescueQuantity" type="number" min="1" step="1"></div>
+        <div class="form-group"><label>保护级别 <span class="required">*</span></label><div class="choice-grid" id="rescueProtectionLevel"><button type="button" class="choice-btn" data-value="一级">一级</button><button type="button" class="choice-btn" data-value="二级">二级</button><button type="button" class="choice-btn" data-value="三有">三有</button><button type="button" class="choice-btn" data-value="待确定">待确定</button></div></div>
+        <div class="form-group"><label for="rescueHabitat">生境类型 <span class="required">*</span></label><select id="rescueHabitat"></select></div>
+        <div class="form-group"><label>处理方式 <span class="required">*</span></label><div class="choice-grid" id="rescueHandlingMethod"><button type="button" class="choice-btn" data-value="驱离">驱离</button><button type="button" class="choice-btn" data-value="捕捉转移">捕捉转移</button><button type="button" class="choice-btn" data-value="临时救护">临时救护</button></div></div>
+        <div class="form-group"><label for="rescueTransferLocation">转移地点</label><input id="rescueTransferLocation" type="text"></div>
+        <div class="form-group"><label for="rescueEventRemark">备注</label><textarea id="rescueEventRemark" rows="3"></textarea></div>
+        <div class="button-row"><button id="saveRescueEventBtn" class="btn btn-primary">保存并复制</button><button id="cancelRescueEventBtn" class="btn btn-secondary">取消</button></div>
+        <div id="rescueEventMessage" class="message"></div>
+    </section>
+
+    <section id="rescueManagementSection" class="card hidden">
+        <div class="section-title">搜救作业管理</div>
+        <div class="management-note">管理全部搜救作业。已删除作业不能直接修改；恢复后可继续管理。完成状态不会锁定作业。</div>
+        <div class="button-row">
+            <button id="exportRescueJsonBtn" class="btn btn-secondary">导出搜救数据</button>
+            <button id="importRescueJsonBtn" class="btn btn-secondary">导入搜救数据</button>
+            <input id="rescueJsonFileInput" type="file" accept="application/json,.json" class="hidden">
+        </div>
+        <div id="rescueManagementList" class="management-list"></div>
+        <div class="button-row"><button id="closeRescueManagementBtn" class="btn btn-secondary">关闭管理</button></div>
+    </section>
+
+    <!-- ================================= -->
+    <!-- 查看搜救详情 -->
+    <!-- ================================= -->
+    <div id="rescueViewModal" class="modal hidden">
+        <div class="modal-backdrop" onclick="closeRescueViewModal()"></div>
+        <div class="modal-panel">
+            <div class="modal-header"><div id="rescueViewModalTitle" class="modal-title">搜救详情</div><button id="closeRescueViewModalBtn" class="modal-close">×</button></div>
+            <div id="rescueViewModalBody" class="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- ================================= -->
     <!-- 数据状态 -->
     <!-- ================================= -->
 
@@ -1476,14 +1565,15 @@
 
 <script src="app.js"></script>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js', { scope: './' })
-          .catch(err => console.warn('Service Worker 注册失败:', err));
-      });
-    }
-  </script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
+      .catch(err => console.warn("Service Worker 注册失败:", err));
+  });
+}
+</script>
+
 </body>
 
 </html>

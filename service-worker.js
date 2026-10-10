@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ecosurvey-pwa-v2-20261004';
+const CACHE_NAME = 'ecosurvey-pwa-rescue-v1-20261011';
 const APP_SHELL = [
   './',
   './index.html',

@@ -37,7 +37,15 @@ let data = {
 
     events: [],
 
-    reserved_event_ids: []
+    reserved_event_ids: [],
+
+    rescue_operations: [],
+
+    rescue_events: [],
+
+    reserved_rescue_operation_ids: [],
+
+    reserved_rescue_event_ids: []
 
 };
 
@@ -143,6 +151,19 @@ function loadData() {
             data.transects = Array.isArray(data.transects) ? data.transects : [];
             data.events = Array.isArray(data.events) ? data.events : [];
             data.reserved_event_ids = Array.isArray(data.reserved_event_ids) ? data.reserved_event_ids : [];
+            data.rescue_operations = Array.isArray(data.rescue_operations) ? data.rescue_operations : [];
+            data.rescue_events = Array.isArray(data.rescue_events) ? data.rescue_events : [];
+            data.reserved_rescue_operation_ids = Array.isArray(data.reserved_rescue_operation_ids) ? data.reserved_rescue_operation_ids : [];
+            data.reserved_rescue_event_ids = Array.isArray(data.reserved_rescue_event_ids) ? data.reserved_rescue_event_ids : [];
+
+            data.rescue_operations.forEach(item => {
+                if (!item.status) item.status = "active";
+                if (item.operation_id && !data.reserved_rescue_operation_ids.includes(item.operation_id)) data.reserved_rescue_operation_ids.push(item.operation_id);
+            });
+            data.rescue_events.forEach(item => {
+                if (!item.status) item.status = "active";
+                if (item.event_id && !data.reserved_rescue_event_ids.includes(item.event_id)) data.reserved_rescue_event_ids.push(item.event_id);
+            });
 
             data.transects.forEach(item => {
                 if (!item.status) item.status = "active";
@@ -201,6 +222,8 @@ function renderAll() {
     renderRecentEvents();
 
     renderDataStatus();
+    if (!document.getElementById("rescueManagementSection")?.classList.contains("hidden")) renderRescueManagement();
+    if (!document.getElementById("rescueOperationDetailSection")?.classList.contains("hidden")) renderRescueOperationDetail();
 
 }
 
@@ -451,6 +474,10 @@ function renderDataStatus() {
         样线：${transectCount} 条（有效 ${activeTransectCount}，已删除 ${deletedTransectCount}）
         <br>
         调查事件：${eventCount} 条（有效 ${activeEventCount}，已删除 ${deletedEventCount}）
+        <br>
+        搜救作业：${data.rescue_operations.length} 条（有效 ${data.rescue_operations.filter(item => item.status !== "deleted").length}，已删除 ${data.rescue_operations.filter(item => item.status === "deleted").length}）
+        <br>
+        搜救事件：${data.rescue_events.length} 条（有效 ${data.rescue_events.filter(item => item.status !== "deleted").length}，已删除 ${data.rescue_events.filter(item => item.status === "deleted").length}）
 
         <br>
 
@@ -2268,3 +2295,156 @@ function restoreEvent(eventId) {
    ======================================== */
 
 renderTransectManagement();
+
+
+/* ========================================
+   野生动物搜救模块
+   ======================================== */
+
+const RESCUE_HABITATS = ["针叶林","针阔混交林","落叶阔叶林","常绿阔叶林","灌丛","草地","草坡","农田","果园","河流","湖泊","湿地/沼泽","裸地","裸岩","居民区","其他"];
+let editingRescueOperationId = null;
+let editingRescueEventId = null;
+let currentRescueOperationId = null;
+let selectedRescueProtection = "";
+let selectedRescueHandling = "";
+
+function initRescueModule() {
+    const fill = id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '<option value="">请选择</option>' + RESCUE_HABITATS.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+    };
+    fill("rescueMainHabitat"); fill("rescueHabitat");
+    document.querySelectorAll("#rescueProtectionLevel .choice-btn").forEach(btn => btn.addEventListener("click", () => selectRescueChoice("protection", btn.dataset.value)));
+    document.querySelectorAll("#rescueHandlingMethod .choice-btn").forEach(btn => btn.addEventListener("click", () => selectRescueChoice("handling", btn.dataset.value)));
+    document.getElementById("newRescueOperationBtn")?.addEventListener("click", openNewRescueOperation);
+    document.getElementById("saveRescueOperationBtn")?.addEventListener("click", createOrUpdateRescueOperation);
+    document.getElementById("cancelRescueOperationBtn")?.addEventListener("click", closeRescueOperationForm);
+    document.getElementById("rescueManagementBtn")?.addEventListener("click", openRescueManagement);
+    document.getElementById("closeRescueManagementBtn")?.addEventListener("click", closeRescueManagement);
+    document.getElementById("newRescueEventBtn")?.addEventListener("click", openNewRescueEvent);
+    document.getElementById("saveRescueEventBtn")?.addEventListener("click", createOrUpdateRescueEvent);
+    document.getElementById("cancelRescueEventBtn")?.addEventListener("click", closeRescueEventForm);
+    document.getElementById("editRescueOperationBtn")?.addEventListener("click", () => editRescueOperation(currentRescueOperationId));
+    document.getElementById("completeRescueOperationBtn")?.addEventListener("click", completeRescueOperation);
+    document.getElementById("closeRescueDetailBtn")?.addEventListener("click", closeRescueOperationDetail);
+    document.getElementById("closeRescueViewModalBtn")?.addEventListener("click", closeRescueViewModal);
+    document.getElementById("exportRescueJsonBtn")?.addEventListener("click", exportRescueJson);
+    document.getElementById("importRescueJsonBtn")?.addEventListener("click", () => document.getElementById("rescueJsonFileInput")?.click());
+    document.getElementById("rescueJsonFileInput")?.addEventListener("change", importRescueJson);
+}
+
+function selectRescueChoice(type, value) {
+    if (type === "protection") selectedRescueProtection = value;
+    if (type === "handling") selectedRescueHandling = value;
+    const box = type === "protection" ? "rescueProtectionLevel" : "rescueHandlingMethod";
+    document.querySelectorAll(`#${box} .choice-btn`).forEach(btn => btn.classList.toggle("selected", btn.dataset.value === value));
+}
+
+function clearRescueOperationForm() {
+    ["rescuePersonnel","rescueArea","rescueTransectId","rescueTemperature","rescueOperationRemark"].forEach(id => { const e=document.getElementById(id); if(e)e.value=""; });
+    ["rescueWeather","rescueMainHabitat","rescueDisturbanceType","rescueDisturbanceLevel"].forEach(id => { const e=document.getElementById(id); if(e)e.value=""; });
+}
+
+function openNewRescueOperation() {
+    editingRescueOperationId = null;
+    document.querySelector("#rescueOperationFormSection .section-title").textContent = "新建搜救作业";
+    clearRescueOperationForm();
+    document.getElementById("rescueOperationFormSection").classList.remove("hidden");
+    document.getElementById("rescueOperationDetailSection").classList.add("hidden");
+    document.getElementById("rescueEventFormSection").classList.add("hidden");
+    window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function createOrUpdateRescueOperation() {
+    const vals = {
+        rescue_personnel: document.getElementById("rescuePersonnel").value.trim(),
+        rescue_area: document.getElementById("rescueArea").value.trim(),
+        transect_id: document.getElementById("rescueTransectId").value.trim(),
+        weather: document.getElementById("rescueWeather").value,
+        temperature: document.getElementById("rescueTemperature").value.trim(),
+        main_habitat: document.getElementById("rescueMainHabitat").value,
+        disturbance_type: document.getElementById("rescueDisturbanceType").value,
+        disturbance_level: document.getElementById("rescueDisturbanceLevel").value,
+        remark: document.getElementById("rescueOperationRemark").value.trim()
+    };
+    const labels = [["rescue_personnel","请输入搜救人员。"],["rescue_area","请输入搜救区域。"],["transect_id","请输入样线编号。"],["weather","请选择天气。"],["temperature","请输入温度。"],["main_habitat","请选择主要生境类型。"],["disturbance_type","请选择人为干扰类型。"],["disturbance_level","请选择人为干扰强度。"]];
+    for (const [k,msg] of labels) if (!vals[k]) { alert(msg); return; }
+    if (editingRescueOperationId) {
+        const op=data.rescue_operations.find(x=>x.operation_id===editingRescueOperationId); if(!op||op.status==="deleted") return;
+        Object.assign(op,vals); editingRescueOperationId=null; saveData(); closeRescueOperationForm(); openRescueOperationDetail(op.operation_id); alert(`已修改搜救作业：${op.operation_id}。`); return;
+    }
+    const id=generateNextRescueOperationId();
+    const now=new Date().toISOString();
+    data.rescue_operations.push({operation_id:id,status:"active",...vals,created_at:now,updated_at:now});
+    currentRescueOperationId=id; saveData(); closeRescueOperationForm(); openRescueOperationDetail(id); alert(`搜救作业 ${id} 保存成功。`);
+}
+
+function generateNextRescueOperationId() {
+    const used=[...data.reserved_rescue_operation_ids,...data.rescue_operations.map(x=>x.operation_id)].filter(Boolean);
+    let n=1; while(used.includes(`RES${String(n).padStart(3,"0")}`)) n++;
+    const id=`RES${String(n).padStart(3,"0")}`; data.reserved_rescue_operation_ids.push(id); return id;
+}
+
+function generateNextRescueEventId(operationId) {
+    const used=[...data.reserved_rescue_event_ids,...data.rescue_events.map(x=>x.event_id)].filter(Boolean);
+    let n=1; while(used.includes(`${operationId}_R${String(n).padStart(3,"0")}`)) n++;
+    const id=`${operationId}_R${String(n).padStart(3,"0")}`; data.reserved_rescue_event_ids.push(id); return id;
+}
+
+function closeRescueOperationForm(){ document.getElementById("rescueOperationFormSection")?.classList.add("hidden"); editingRescueOperationId=null; }
+
+function openRescueOperationDetail(id) {
+    const op=data.rescue_operations.find(x=>x.operation_id===id); if(!op||op.status==="deleted") return;
+    currentRescueOperationId=id; renderRescueOperationDetail();
+    document.getElementById("rescueOperationDetailSection").classList.remove("hidden");
+    document.getElementById("rescueManagementSection").classList.add("hidden");
+    document.getElementById("rescueOperationDetailSection").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function renderRescueOperationDetail() {
+    const id=currentRescueOperationId, op=data.rescue_operations.find(x=>x.operation_id===id); if(!op) return;
+    document.getElementById("rescueOperationDetailTitle").textContent=`搜救作业：${id}`;
+    document.getElementById("rescueOperationDetailBody").innerHTML=`<div><span>状态</span>${op.status==="completed"?"已完成":"进行中"}</div><div><span>搜救人员</span>${escapeHtml(op.rescue_personnel)}</div><div><span>搜救区域</span>${escapeHtml(op.rescue_area)}</div><div><span>样线编号</span>${escapeHtml(op.transect_id)}</div><div><span>天气 / 温度</span>${escapeHtml(op.weather)} / ${escapeHtml(op.temperature)}</div><div><span>主要生境</span>${escapeHtml(op.main_habitat)}</div><div><span>人为干扰</span>${escapeHtml(op.disturbance_type)} / ${escapeHtml(op.disturbance_level)}</div><div><span>备注</span>${escapeHtml(op.remark||"")}</div>`;
+    const events=data.rescue_events.filter(x=>x.rescue_operation_id===id);
+    document.getElementById("rescueEventList").innerHTML=events.length?events.map(e=>`<div class="event-item ${e.status==="deleted"?"rescue-event-deleted":""}"><div class="event-id">${escapeHtml(e.event_id)} ${e.status==="deleted"?"· 已删除":""}</div><div class="event-main">${escapeHtml(e.rescue_object)} · ${e.quantity} 个 · ${escapeHtml(e.protection_level)} · ${escapeHtml(e.handling_method)}</div><div class="event-detail">生境：${escapeHtml(e.habitat)}${e.transfer_location?` · 转移地点：${escapeHtml(e.transfer_location)}`:""}</div><div class="management-actions"><button class="btn btn-secondary btn-small" onclick="viewRescueEvent('${escapeHtml(e.event_id)}')">查看</button>${e.status==="deleted"?`<button class="btn btn-secondary btn-small" onclick="restoreRescueEvent('${escapeHtml(e.event_id)}')">恢复</button><button class="btn btn-danger btn-small permanent-action" onclick="permanentlyDeleteRescueEvent('${escapeHtml(e.event_id)}')">彻底删除</button>`:`<button class="btn btn-secondary btn-small" onclick="editRescueEvent('${escapeHtml(e.event_id)}')">修改</button><button class="btn btn-danger btn-small" onclick="softDeleteRescueEvent('${escapeHtml(e.event_id)}')">删除</button>`}</div></div>`).join(""):"<div class='empty-state'>暂无搜救事件</div>";
+    const completeBtn = document.getElementById("completeRescueOperationBtn");
+    completeBtn.textContent = "完成搜救作业";
+    completeBtn.disabled = op.status === "completed";
+}
+
+function editRescueOperation(id){ const op=data.rescue_operations.find(x=>x.operation_id===id); if(!op||op.status==="deleted") return; editingRescueOperationId=id; document.querySelector("#rescueOperationFormSection .section-title").textContent=`修改搜救作业：${id}`; document.getElementById("rescuePersonnel").value=op.rescue_personnel; document.getElementById("rescueArea").value=op.rescue_area; document.getElementById("rescueTransectId").value=op.transect_id; document.getElementById("rescueWeather").value=op.weather; document.getElementById("rescueTemperature").value=op.temperature; document.getElementById("rescueMainHabitat").value=op.main_habitat; document.getElementById("rescueDisturbanceType").value=op.disturbance_type; document.getElementById("rescueDisturbanceLevel").value=op.disturbance_level; document.getElementById("rescueOperationRemark").value=op.remark||""; document.getElementById("rescueOperationFormSection").classList.remove("hidden"); document.getElementById("rescueOperationDetailSection").classList.add("hidden"); window.scrollTo({top:0,behavior:"smooth"}); }
+
+function completeRescueOperation(){ const op=data.rescue_operations.find(x=>x.operation_id===currentRescueOperationId); if(!op||op.status!=="active") return; if(!confirm(`确认完成搜救作业：${op.operation_id}？\n完成后仍可查看、修改和新增搜救事件。`)) return; op.status="completed"; saveData(); renderRescueOperationDetail(); }
+function closeRescueOperationDetail(){ document.getElementById("rescueOperationDetailSection")?.classList.add("hidden"); document.getElementById("rescueEventFormSection")?.classList.add("hidden"); currentRescueOperationId=null; editingRescueEventId=null; }
+
+function openNewRescueEvent(){ if(!currentRescueOperationId) return; const op=data.rescue_operations.find(x=>x.operation_id===currentRescueOperationId); if(!op||op.status==="deleted") return; editingRescueEventId=null; clearRescueEventForm(); document.querySelector("#rescueEventFormSection .section-title").textContent="新增搜救事件"; document.getElementById("rescueEventFormSection").classList.remove("hidden"); document.getElementById("rescueEventFormSection").scrollIntoView({behavior:"smooth",block:"start"}); }
+function clearRescueEventForm(){ document.getElementById("rescueObject").value=""; document.getElementById("rescueQuantity").value=""; document.getElementById("rescueHabitat").value=""; document.getElementById("rescueTransferLocation").value=""; document.getElementById("rescueEventRemark").value=""; selectedRescueProtection=""; selectedRescueHandling=""; document.querySelectorAll("#rescueProtectionLevel .choice-btn,#rescueHandlingMethod .choice-btn").forEach(b=>b.classList.remove("selected")); }
+function closeRescueEventForm(){ document.getElementById("rescueEventFormSection")?.classList.add("hidden"); editingRescueEventId=null; clearRescueEventForm(); }
+
+function createOrUpdateRescueEvent(){
+    const object=document.getElementById("rescueObject").value.trim(); const quantity=Number(document.getElementById("rescueQuantity").value); const habitat=document.getElementById("rescueHabitat").value; const transfer=document.getElementById("rescueTransferLocation").value.trim(); const remark=document.getElementById("rescueEventRemark").value.trim();
+    if(!object){alert("请输入搜救对象。");return;} if(!Number.isInteger(quantity)||quantity<1){alert("数量必须为正整数。");return;} if(!selectedRescueProtection){alert("请选择保护级别。");return;} if(!habitat){alert("请选择生境类型。");return;} if(!selectedRescueHandling){alert("请选择处理方式。");return;}
+    if(editingRescueEventId){ const e=data.rescue_events.find(x=>x.event_id===editingRescueEventId); if(!e||e.status==="deleted")return; Object.assign(e,{rescue_object:object,quantity,protection_level:selectedRescueProtection,habitat,handling_method:selectedRescueHandling,transfer_location:transfer||null,remark}); editingRescueEventId=null; saveData(); closeRescueEventForm(); copyToClipboard(generateRescueEventText(e)); alert(`已修改 ${e.event_id}，更新后的搜救事件记录已复制。`); openRescueOperationDetail(e.rescue_operation_id); return; }
+    const id=generateNextRescueEventId(currentRescueOperationId); const now=new Date().toISOString(); const e={event_id:id,rescue_operation_id:currentRescueOperationId,rescue_object:object,quantity,protection_level:selectedRescueProtection,habitat,handling_method:selectedRescueHandling,transfer_location:transfer||null,remark,status:"active",created_at:now,updated_at:now}; data.rescue_events.push(e); saveData(); closeRescueEventForm(); copyToClipboard(generateRescueEventText(e)); alert(`搜救事件 ${id} 保存成功，标准化记录已复制。`); openRescueOperationDetail(currentRescueOperationId);
+}
+function generateRescueEventText(e){ return `【搜救事件】\n事件=${e.event_id}\n搜救对象=${e.rescue_object}\n数量=${e.quantity}\n保护级别=${e.protection_level}\n生境类型=${e.habitat}\n处理方式=${e.handling_method}\n转移地点=${e.transfer_location===null?"NULL":e.transfer_location}\n备注=${e.remark?e.remark:"NULL"}`; }
+function editRescueEvent(id){ const e=data.rescue_events.find(x=>x.event_id===id); if(!e||e.status==="deleted")return; currentRescueOperationId=e.rescue_operation_id; editingRescueEventId=id; document.querySelector("#rescueEventFormSection .section-title").textContent=`修改搜救事件：${id}`; document.getElementById("rescueObject").value=e.rescue_object; document.getElementById("rescueQuantity").value=e.quantity; document.getElementById("rescueHabitat").value=e.habitat; document.getElementById("rescueTransferLocation").value=e.transfer_location||""; document.getElementById("rescueEventRemark").value=e.remark||""; selectRescueChoice("protection",e.protection_level); selectRescueChoice("handling",e.handling_method); document.getElementById("rescueEventFormSection").classList.remove("hidden"); document.getElementById("rescueOperationDetailSection").classList.add("hidden"); document.getElementById("rescueEventFormSection").scrollIntoView({behavior:"smooth",block:"start"}); }
+function viewRescueEvent(id){ const e=data.rescue_events.find(x=>x.event_id===id); if(!e)return; document.getElementById("rescueViewModalTitle").textContent=`搜救事件：${id}`; document.getElementById("rescueViewModalBody").innerHTML=`<div class="detail-list"><div><span>状态</span>${e.status==="deleted"?"已删除":"有效"}</div><div><span>搜救作业</span>${escapeHtml(e.rescue_operation_id)}</div><div><span>搜救对象</span>${escapeHtml(e.rescue_object)}</div><div><span>数量</span>${e.quantity}</div><div><span>保护级别</span>${escapeHtml(e.protection_level)}</div><div><span>生境类型</span>${escapeHtml(e.habitat)}</div><div><span>处理方式</span>${escapeHtml(e.handling_method)}</div><div><span>转移地点</span>${escapeHtml(e.transfer_location||"")}</div><div><span>备注</span>${escapeHtml(e.remark||"")}</div></div>`; document.getElementById("rescueViewModal").classList.remove("hidden"); }
+function closeRescueViewModal(){document.getElementById("rescueViewModal")?.classList.add("hidden");}
+function softDeleteRescueEvent(id){ const e=data.rescue_events.find(x=>x.event_id===id); if(!e||e.status==="deleted")return; if(!confirm(`搜救事件：${id}\n将进入已删除状态，是否确认？`))return; e.status="deleted"; e.deleted_reason="user_deleted"; saveData(); renderRescueOperationDetail(); }
+function restoreRescueEvent(id){ const e=data.rescue_events.find(x=>x.event_id===id); if(!e||e.status!=="deleted")return; const op=data.rescue_operations.find(x=>x.operation_id===e.rescue_operation_id); if(!op||op.status==="deleted"){alert("该事件所属搜救作业已删除，请先恢复作业。");return;} e.status="active"; delete e.deleted_reason; saveData(); renderRescueOperationDetail(); }
+function permanentlyDeleteRescueEvent(id){ const e=data.rescue_events.find(x=>x.event_id===id); if(!e||e.status!=="deleted")return; if(!confirm(`搜救事件：${id}\n将彻底删除，是否确认。`))return; if(!confirm("此操作将无法恢复。"))return; data.rescue_events=data.rescue_events.filter(x=>x.event_id!==id); saveData(); renderRescueOperationDetail(); }
+
+function openRescueManagement(){ document.getElementById("rescueManagementSection").classList.remove("hidden"); document.getElementById("rescueOperationFormSection").classList.add("hidden"); document.getElementById("rescueOperationDetailSection").classList.add("hidden"); document.getElementById("rescueEventFormSection").classList.add("hidden"); renderRescueManagement(); document.getElementById("rescueManagementSection").scrollIntoView({behavior:"smooth",block:"start"}); }
+function closeRescueManagement(){document.getElementById("rescueManagementSection")?.classList.add("hidden");}
+function renderRescueManagement(){ const list=document.getElementById("rescueManagementList"); if(!list)return; if(!data.rescue_operations.length){list.innerHTML='<div class="empty-state">暂无搜救作业</div>';return;} list.innerHTML=data.rescue_operations.map(op=>{const deleted=op.status==="deleted"; const completed=op.status==="completed"; const count=data.rescue_events.filter(e=>e.rescue_operation_id===op.operation_id).length; return `<div class="management-item ${deleted?"is-deleted":""}"><div class="management-main"><div class="management-title">${escapeHtml(op.operation_id)}</div><div class="management-meta">${escapeHtml(op.rescue_area)} · ${count} 条搜救事件 · <span class="status-badge ${deleted?"rescue-status-deleted":completed?"rescue-status-completed":"status-active"}">${deleted?"已删除":completed?"已完成":"进行中"}</span></div></div><div class="management-actions"><button class="btn btn-secondary btn-small" onclick="viewRescueOperation('${escapeHtml(op.operation_id)}')">查看</button>${deleted?`<button class="btn btn-secondary btn-small" onclick="restoreRescueOperation('${escapeHtml(op.operation_id)}')">恢复</button><button class="btn btn-danger btn-small permanent-action" onclick="permanentlyDeleteRescueOperation('${escapeHtml(op.operation_id)}')">彻底删除</button>`:`<button class="btn btn-secondary btn-small" onclick="editRescueOperation('${escapeHtml(op.operation_id)}')">修改</button><button class="btn btn-danger btn-small" onclick="softDeleteRescueOperation('${escapeHtml(op.operation_id)}')">删除</button>`}</div></div>`;}).join(""); }
+function viewRescueOperation(id){ const op=data.rescue_operations.find(x=>x.operation_id===id); if(!op)return; if(op.status!=="deleted"){openRescueOperationDetail(id);return;} document.getElementById("rescueViewModalTitle").textContent=`搜救作业：${id}`; const events=data.rescue_events.filter(e=>e.rescue_operation_id===id); document.getElementById("rescueViewModalBody").innerHTML=`<div class="detail-list"><div><span>状态</span>已删除</div><div><span>搜救人员</span>${escapeHtml(op.rescue_personnel)}</div><div><span>搜救区域</span>${escapeHtml(op.rescue_area)}</div><div><span>样线编号</span>${escapeHtml(op.transect_id)}</div><div><span>搜救事件</span>${events.length} 条</div><div><span>备注</span>${escapeHtml(op.remark||"")}</div></div>`; document.getElementById("rescueViewModal").classList.remove("hidden"); }
+function softDeleteRescueOperation(id){ const op=data.rescue_operations.find(x=>x.operation_id===id); if(!op||op.status==="deleted")return; if(!confirm(`搜救作业：${id}\n将进入已删除状态，其下搜救事件也将随作业删除。是否确认？`))return; op.previous_status=op.status; op.status="deleted"; op.deleted_event_states={}; data.rescue_events.filter(e=>e.rescue_operation_id===id).forEach(e=>{op.deleted_event_states[e.event_id]=e.status;e.status="deleted";e.deleted_reason="operation_deleted";}); saveData(); renderRescueManagement(); }
+function restoreRescueOperation(id){ const op=data.rescue_operations.find(x=>x.operation_id===id); if(!op||op.status!=="deleted")return; op.status=op.previous_status||"active"; const states=op.deleted_event_states||{}; data.rescue_events.filter(e=>e.rescue_operation_id===id).forEach(e=>{if(e.deleted_reason==="operation_deleted"){const prior=states[e.event_id]||"active";e.status=prior;delete e.deleted_reason;}}); delete op.deleted_event_states; delete op.previous_status; saveData(); renderRescueManagement(); }
+function permanentlyDeleteRescueOperation(id){ const op=data.rescue_operations.find(x=>x.operation_id===id); if(!op||op.status!=="deleted")return; const count=data.rescue_events.filter(e=>e.rescue_operation_id===id).length; if(!confirm(`搜救作业：${id}  搜救事件：${count} 条  将彻底删除，是否确认。`))return; if(!confirm("此操作将无法恢复。"))return; data.rescue_operations=data.rescue_operations.filter(x=>x.operation_id!==id); data.rescue_events=data.rescue_events.filter(e=>e.rescue_operation_id!==id); if(currentRescueOperationId===id)currentRescueOperationId=null; saveData(); renderRescueManagement(); }
+
+function exportRescueJson(){ const payload={backup_format:"EcoSurvey_Rescue_JSON",backup_version:"1.0",data:{rescue_operations:data.rescue_operations,rescue_events:data.rescue_events,reserved_rescue_operation_ids:data.reserved_rescue_operation_ids,reserved_rescue_event_ids:data.reserved_rescue_event_ids}}; const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json;charset=utf-8"}); const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="EcoSurvey_Rescue_JSON.json";a.click();URL.revokeObjectURL(a.href); }
+async function importRescueJson(ev){ const file=ev.target.files?.[0]; ev.target.value=""; if(!file)return; try{const parsed=JSON.parse(await file.text()); const d=parsed?.data; if(parsed.backup_format!=="EcoSurvey_Rescue_JSON"||parsed.backup_version!=="1.0"||!d||!Array.isArray(d.rescue_operations)||!Array.isArray(d.rescue_events)||!Array.isArray(d.reserved_rescue_operation_ids)||!Array.isArray(d.reserved_rescue_event_ids))throw new Error("格式不正确"); const opIds=new Set(d.rescue_operations.map(x=>x.operation_id)); if(d.rescue_operations.some(x=>!/^RES\d{3}$/.test(x.operation_id)||!['active','completed','deleted'].includes(x.status)))throw new Error("搜救作业数据无效"); if(d.rescue_events.some(x=>!/^RES\d{3}_R\d{3}$/.test(x.event_id)||!opIds.has(x.rescue_operation_id)||!['active','deleted'].includes(x.status)))throw new Error("搜救事件数据无效"); if(d.reserved_rescue_operation_ids.some(x=>typeof x!=="string")||d.reserved_rescue_event_ids.some(x=>typeof x!=="string"))throw new Error("ID保留池无效"); if(!confirm("导入将只替换当前搜救数据，不影响样线调查数据。是否继续？"))return; data.rescue_operations=d.rescue_operations;data.rescue_events=d.rescue_events;data.reserved_rescue_operation_ids=d.reserved_rescue_operation_ids;data.reserved_rescue_event_ids=d.reserved_rescue_event_ids;currentRescueOperationId=null;saveData();renderRescueManagement();alert("搜救数据导入成功。");}catch(err){alert(`搜救数据导入失败：${err.message}`);} }
+
+initRescueModule();

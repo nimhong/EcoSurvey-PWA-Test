@@ -1,7 +1,7 @@
 {
   "name": "EcoSurvey 野外调查录入器",
   "short_name": "EcoSurvey",
-  "description": "野外生态调查样线与调查事件本地录入工具",
+  "description": "野外生态调查样线、调查事件与野生动物搜救本地录入工具",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
