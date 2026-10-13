@@ -1718,78 +1718,40 @@ function generateEventText(
    18. 复制
    ======================================== */
 
-async function copyToClipboard(
-    text
-) {
-
+async function copyToClipboard(text) {
+    // 首选 Clipboard API：GitHub Pages HTTPS + Android Chrome/PWA 可用。
     try {
-
-        await navigator.clipboard.writeText(
-            text
-        );
-
-    } catch (error) {
-
-        console.error(
-            "复制失败：",
-            error
-        );
-
-
-        const textarea =
-            document.createElement(
-                "textarea"
-            );
-
-
-        textarea.value =
-            text;
-
-
-        textarea.style.position =
-            "fixed";
-
-
-        textarea.style.opacity =
-            "0";
-
-
-        document.body.appendChild(
-            textarea
-        );
-
-
-        textarea.select();
-
-
-        try {
-
-            document.execCommand(
-                "copy"
-            );
-
-        } catch (copyError) {
-
-            console.error(
-                "备用复制方式失败：",
-                copyError
-            );
-
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
         }
-
-
-        document.body.removeChild(
-            textarea
-        );
-
+    } catch (error) {
+        console.warn("Clipboard API 复制失败，尝试备用方式：", error);
     }
 
+    // 兼容备用方案：保持在当前用户操作链中执行。
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+
+    let copied = false;
+    try {
+        copied = document.execCommand("copy");
+    } catch (error) {
+        console.error("备用复制方式失败：", error);
+    }
+
+    document.body.removeChild(textarea);
+    return copied;
 }
-
-
-/* ========================================
-   19. 清空事件表单
-   ======================================== */
 
 function clearEventForm() {
 
@@ -2356,7 +2318,7 @@ function openNewRescueOperation() {
     window.scrollTo({top:0,behavior:"smooth"});
 }
 
-function createOrUpdateRescueOperation() {
+async function createOrUpdateRescueOperation() {
     const vals = {
         rescue_personnel: document.getElementById("rescuePersonnel").value.trim(),
         rescue_area: document.getElementById("rescueArea").value.trim(),
@@ -2382,12 +2344,12 @@ function createOrUpdateRescueOperation() {
 
         // 修改搜救作业后，生成并复制更新后的标准化记录
         const standardText = generateRescueOperationText(op);
-        copyToClipboard(standardText);
+        const copied = await copyToClipboard(standardText);
 
         closeRescueOperationForm();
         currentRescueOperationId = op.operation_id;
         openRescueOperationDetail(op.operation_id);
-        alert(`已修改搜救作业：${op.operation_id}，更新后的标准化记录已复制。`);
+        alert(copied ? `已修改搜救作业：${op.operation_id}，更新后的标准化记录已复制。` : `已修改搜救作业：${op.operation_id}，但自动复制失败，请手动复制。`);
         return;
     }
 
@@ -2407,11 +2369,11 @@ function createOrUpdateRescueOperation() {
 
     // 新建搜救作业保存后，立即生成并复制标准化记录
     const standardText = generateRescueOperationText(op);
-    copyToClipboard(standardText);
+    const copied = await copyToClipboard(standardText);
 
     closeRescueOperationForm();
     openRescueOperationDetail(id);
-    alert(`搜救作业 ${id} 保存成功，标准化记录已复制。`);
+    alert(copied ? `搜救作业 ${id} 保存成功，标准化记录已复制。` : `搜救作业 ${id} 保存成功，但自动复制失败，请手动复制。`);
 }
 
 function generateNextRescueOperationId() {
@@ -2456,11 +2418,11 @@ function openNewRescueEvent(){ if(!currentRescueOperationId) return; const op=da
 function clearRescueEventForm(){ document.getElementById("rescueObject").value=""; document.getElementById("rescueQuantity").value=""; document.getElementById("rescueHabitat").value=""; document.getElementById("rescueTransferLocation").value=""; document.getElementById("rescueEventRemark").value=""; selectedRescueProtection=""; selectedRescueHandling=""; document.querySelectorAll("#rescueProtectionLevel .choice-btn,#rescueHandlingMethod .choice-btn").forEach(b=>b.classList.remove("selected")); }
 function closeRescueEventForm(){ document.getElementById("rescueEventFormSection")?.classList.add("hidden"); editingRescueEventId=null; clearRescueEventForm(); }
 
-function createOrUpdateRescueEvent(){
+async function createOrUpdateRescueEvent(){
     const object=document.getElementById("rescueObject").value.trim(); const quantity=Number(document.getElementById("rescueQuantity").value); const habitat=document.getElementById("rescueHabitat").value; const transfer=document.getElementById("rescueTransferLocation").value.trim(); const remark=document.getElementById("rescueEventRemark").value.trim();
     if(!object){alert("请输入搜救对象。");return;} if(!Number.isInteger(quantity)||quantity<1){alert("数量必须为正整数。");return;} if(!selectedRescueProtection){alert("请选择保护级别。");return;} if(!habitat){alert("请选择生境类型。");return;} if(!selectedRescueHandling){alert("请选择处理方式。");return;}
-    if(editingRescueEventId){ const e=data.rescue_events.find(x=>x.event_id===editingRescueEventId); if(!e||e.status==="deleted")return; Object.assign(e,{rescue_object:object,quantity,protection_level:selectedRescueProtection,habitat,handling_method:selectedRescueHandling,transfer_location:transfer||null,remark}); editingRescueEventId=null; saveData(); closeRescueEventForm(); copyToClipboard(generateRescueEventText(e)); alert(`已修改 ${e.event_id}，更新后的搜救事件记录已复制。`); openRescueOperationDetail(e.rescue_operation_id); return; }
-    const id=generateNextRescueEventId(currentRescueOperationId); const now=new Date().toISOString(); const e={event_id:id,rescue_operation_id:currentRescueOperationId,rescue_object:object,quantity,protection_level:selectedRescueProtection,habitat,handling_method:selectedRescueHandling,transfer_location:transfer||null,remark,status:"active",created_at:now,updated_at:now}; data.rescue_events.push(e); saveData(); closeRescueEventForm(); copyToClipboard(generateRescueEventText(e)); alert(`搜救事件 ${id} 保存成功，标准化记录已复制。`); openRescueOperationDetail(currentRescueOperationId);
+    if(editingRescueEventId){ const e=data.rescue_events.find(x=>x.event_id===editingRescueEventId); if(!e||e.status==="deleted")return; Object.assign(e,{rescue_object:object,quantity,protection_level:selectedRescueProtection,habitat,handling_method:selectedRescueHandling,transfer_location:transfer||null,remark}); editingRescueEventId=null; saveData(); closeRescueEventForm(); const copied = await copyToClipboard(generateRescueEventText(e)); alert(copied ? `已修改 ${e.event_id}，更新后的搜救事件记录已复制。` : `已修改 ${e.event_id}，但自动复制失败，请手动复制。`); openRescueOperationDetail(e.rescue_operation_id); return; }
+    const id=generateNextRescueEventId(currentRescueOperationId); const now=new Date().toISOString(); const e={event_id:id,rescue_operation_id:currentRescueOperationId,rescue_object:object,quantity,protection_level:selectedRescueProtection,habitat,handling_method:selectedRescueHandling,transfer_location:transfer||null,remark,status:"active",created_at:now,updated_at:now}; data.rescue_events.push(e); saveData(); closeRescueEventForm(); const copied = await copyToClipboard(generateRescueEventText(e)); alert(copied ? `搜救事件 ${id} 保存成功，标准化记录已复制。` : `搜救事件 ${id} 保存成功，但自动复制失败，请手动复制。`); openRescueOperationDetail(currentRescueOperationId);
 }
 function generateRescueOperationText(op){
     return `【搜救作业】

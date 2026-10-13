@@ -12,16 +12,13 @@
 
     <title>EcoSurvey 野外调查记录器</title>
 
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#16535A">
+
     <link
         rel="stylesheet"
         href="style.css"
     >
-
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#16535A">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
 </head>
 
@@ -1566,11 +1563,24 @@
 <script src="app.js"></script>
 
 <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js", { scope: "./" })
-      .catch(err => console.warn("Service Worker 注册失败:", err));
-  });
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!window.__ecoSurveyReloaded) {
+            window.__ecoSurveyReloaded = true;
+            window.location.reload();
+        }
+    });
+    window.addEventListener('load', async () => {
+        try {
+            const registration = await navigator.serviceWorker.register('./service-worker.js', {
+                scope: './',
+                updateViaCache: 'none'
+            });
+            await registration.update();
+        } catch (error) {
+            console.error('Service Worker 注册失败：', error);
+        }
+    });
 }
 </script>
 
