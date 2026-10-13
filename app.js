@@ -2371,13 +2371,47 @@ function createOrUpdateRescueOperation() {
     const labels = [["rescue_personnel","请输入搜救人员。"],["rescue_area","请输入搜救区域。"],["transect_id","请输入样线编号。"],["weather","请选择天气。"],["temperature","请输入温度。"],["main_habitat","请选择主要生境类型。"],["disturbance_type","请选择人为干扰类型。"],["disturbance_level","请选择人为干扰强度。"]];
     for (const [k,msg] of labels) if (!vals[k]) { alert(msg); return; }
     if (editingRescueOperationId) {
-        const op=data.rescue_operations.find(x=>x.operation_id===editingRescueOperationId); if(!op||op.status==="deleted") return;
-        Object.assign(op,vals); editingRescueOperationId=null; saveData(); closeRescueOperationForm(); openRescueOperationDetail(op.operation_id); alert(`已修改搜救作业：${op.operation_id}。`); return;
+        const op=data.rescue_operations.find(x=>x.operation_id===editingRescueOperationId);
+        if(!op||op.status==="deleted") return;
+
+        Object.assign(op, vals);
+        op.updated_at = new Date().toISOString();
+
+        editingRescueOperationId=null;
+        saveData();
+
+        // 修改搜救作业后，生成并复制更新后的标准化记录
+        const standardText = generateRescueOperationText(op);
+        copyToClipboard(standardText);
+
+        closeRescueOperationForm();
+        currentRescueOperationId = op.operation_id;
+        openRescueOperationDetail(op.operation_id);
+        alert(`已修改搜救作业：${op.operation_id}，更新后的标准化记录已复制。`);
+        return;
     }
+
     const id=generateNextRescueOperationId();
     const now=new Date().toISOString();
-    data.rescue_operations.push({operation_id:id,status:"active",...vals,created_at:now,updated_at:now});
-    currentRescueOperationId=id; saveData(); closeRescueOperationForm(); openRescueOperationDetail(id); alert(`搜救作业 ${id} 保存成功。`);
+    const op={
+        operation_id:id,
+        status:"active",
+        ...vals,
+        created_at:now,
+        updated_at:now
+    };
+
+    data.rescue_operations.push(op);
+    currentRescueOperationId=id;
+    saveData();
+
+    // 新建搜救作业保存后，立即生成并复制标准化记录
+    const standardText = generateRescueOperationText(op);
+    copyToClipboard(standardText);
+
+    closeRescueOperationForm();
+    openRescueOperationDetail(id);
+    alert(`搜救作业 ${id} 保存成功，标准化记录已复制。`);
 }
 
 function generateNextRescueOperationId() {
@@ -2428,6 +2462,20 @@ function createOrUpdateRescueEvent(){
     if(editingRescueEventId){ const e=data.rescue_events.find(x=>x.event_id===editingRescueEventId); if(!e||e.status==="deleted")return; Object.assign(e,{rescue_object:object,quantity,protection_level:selectedRescueProtection,habitat,handling_method:selectedRescueHandling,transfer_location:transfer||null,remark}); editingRescueEventId=null; saveData(); closeRescueEventForm(); copyToClipboard(generateRescueEventText(e)); alert(`已修改 ${e.event_id}，更新后的搜救事件记录已复制。`); openRescueOperationDetail(e.rescue_operation_id); return; }
     const id=generateNextRescueEventId(currentRescueOperationId); const now=new Date().toISOString(); const e={event_id:id,rescue_operation_id:currentRescueOperationId,rescue_object:object,quantity,protection_level:selectedRescueProtection,habitat,handling_method:selectedRescueHandling,transfer_location:transfer||null,remark,status:"active",created_at:now,updated_at:now}; data.rescue_events.push(e); saveData(); closeRescueEventForm(); copyToClipboard(generateRescueEventText(e)); alert(`搜救事件 ${id} 保存成功，标准化记录已复制。`); openRescueOperationDetail(currentRescueOperationId);
 }
+function generateRescueOperationText(op){
+    return `【搜救作业】
+作业=${op.operation_id}
+搜救人员=${op.rescue_personnel || "NULL"}
+搜救区域=${op.rescue_area || "NULL"}
+样线编号=${op.transect_id || "NULL"}
+天气=${op.weather || "NULL"}
+温度=${op.temperature || "NULL"}
+主要生境=${op.main_habitat || "NULL"}
+人为干扰类型=${op.disturbance_type || "NULL"}
+人为干扰强度=${op.disturbance_level || "NULL"}
+备注=${op.remark ? op.remark : "NULL"}`;
+}
+
 function generateRescueEventText(e){ return `【搜救事件】\n事件=${e.event_id}\n搜救对象=${e.rescue_object}\n数量=${e.quantity}\n保护级别=${e.protection_level}\n生境类型=${e.habitat}\n处理方式=${e.handling_method}\n转移地点=${e.transfer_location===null?"NULL":e.transfer_location}\n备注=${e.remark?e.remark:"NULL"}`; }
 function editRescueEvent(id){ const e=data.rescue_events.find(x=>x.event_id===id); if(!e||e.status==="deleted")return; currentRescueOperationId=e.rescue_operation_id; editingRescueEventId=id; document.querySelector("#rescueEventFormSection .section-title").textContent=`修改搜救事件：${id}`; document.getElementById("rescueObject").value=e.rescue_object; document.getElementById("rescueQuantity").value=e.quantity; document.getElementById("rescueHabitat").value=e.habitat; document.getElementById("rescueTransferLocation").value=e.transfer_location||""; document.getElementById("rescueEventRemark").value=e.remark||""; selectRescueChoice("protection",e.protection_level); selectRescueChoice("handling",e.handling_method); document.getElementById("rescueEventFormSection").classList.remove("hidden"); document.getElementById("rescueOperationDetailSection").classList.add("hidden"); document.getElementById("rescueEventFormSection").scrollIntoView({behavior:"smooth",block:"start"}); }
 function viewRescueEvent(id){ const e=data.rescue_events.find(x=>x.event_id===id); if(!e)return; document.getElementById("rescueViewModalTitle").textContent=`搜救事件：${id}`; document.getElementById("rescueViewModalBody").innerHTML=`<div class="detail-list"><div><span>状态</span>${e.status==="deleted"?"已删除":"有效"}</div><div><span>搜救作业</span>${escapeHtml(e.rescue_operation_id)}</div><div><span>搜救对象</span>${escapeHtml(e.rescue_object)}</div><div><span>数量</span>${e.quantity}</div><div><span>保护级别</span>${escapeHtml(e.protection_level)}</div><div><span>生境类型</span>${escapeHtml(e.habitat)}</div><div><span>处理方式</span>${escapeHtml(e.handling_method)}</div><div><span>转移地点</span>${escapeHtml(e.transfer_location||"")}</div><div><span>备注</span>${escapeHtml(e.remark||"")}</div></div>`; document.getElementById("rescueViewModal").classList.remove("hidden"); }
